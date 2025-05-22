@@ -69,10 +69,6 @@ function App() {
           <WatchedSummary watched={watched} />
           <WatchedMovieList watched={watched} />
         </Box>
-        <Box>
-          <WatchedSummary watched={watched} />
-          <WatchedMovieList watched={watched} />
-        </Box>
       </Main>
     </>
   );
