@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const tempMovieData = [
   {
@@ -49,28 +49,82 @@ const tempWatchedData = [
 
 const average = (arr) => arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
 
+const KEY = "23728de8";
+
 function App() {
-  const [movies, setMovies] = useState(tempMovieData);
-  const [watched, setWatched] = useState(tempWatchedData);
+  const [movies, setMovies] = useState([]);
+  const [watched, setWatched] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const [query, setQuery] = useState("inception");
+
+  useEffect(() => {
+    async function fetchMovies() {
+      try {
+        setIsLoading(true);
+        setErrorMsg("");
+
+        const res = await fetch(`http://www.omdbapi.com/?apikey=${KEY}&s=${query}`);
+        if (!res.ok) throw new Error("Movie fetching went wrong");
+
+        const data = await res.json();
+
+        if (data.Response === "False") throw new Error("Movie Not Found.");
+
+        setMovies(data.Search);
+      } catch (error) {
+        setErrorMsg(error.message);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    if (query.length < 3) {
+      setMovies([]);
+      setErrorMsg("");
+      return;
+    }
+
+    fetchMovies();
+  }, [query]);
 
   return (
     <>
       <NavBar>
-        <SearchBar />
+        <SearchBar query={query} setQuery={setQuery} />
         <NumResults movies={movies} />
       </NavBar>
 
       <Main>
         <Box>
-          <MovieList movies={movies} />
+          {movies.length === 0 && !errorMsg && <SearchMessage />}
+          {isLoading && <Loader />}
+          {!isLoading && !errorMsg && <MovieList movies={movies} />}
+          {errorMsg && <ErrorMessage errorMsg={errorMsg} />}
         </Box>
-
         <Box>
           <WatchedSummary watched={watched} />
           <WatchedMovieList watched={watched} />
         </Box>
       </Main>
     </>
+  );
+}
+
+function Loader() {
+  return <p className="msg">Loading...</p>;
+}
+
+function SearchMessage() {
+  return <span className="msg">Search for a movie</span>;
+}
+
+function ErrorMessage({ errorMsg }) {
+  return (
+    <p className="msg">
+      <span>⛔️</span> {errorMsg}
+    </p>
   );
 }
 
@@ -100,9 +154,7 @@ function NumResults({ movies }) {
   );
 }
 
-function SearchBar() {
-  const [query, setQuery] = useState("");
-
+function SearchBar({ query, setQuery }) {
   return (
     <input
       className="search"
@@ -144,7 +196,14 @@ function MovieList({ movies }) {
 function Movie({ movie }) {
   return (
     <li>
-      <img src={movie.Poster} alt={`${movie.Title} poster`} />
+      <img
+        src={
+          movie.Poster != "N/A"
+            ? movie.Poster
+            : "https://placehold.co/400x450/transparent/F00?&text=NO\\nIMAGE&"
+        }
+        alt={`${movie.Title} poster`}
+      />
       <h3>{movie.Title}</h3>
       <div>
         <p>
