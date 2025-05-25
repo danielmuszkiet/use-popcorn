@@ -24,7 +24,8 @@ function StarRating({
   const containerStyle = {
     display: "flex",
     alignItems: "center",
-    gap: `${size / 3}px`,
+    // gap: `${size / 1.5}px`,
+    justifyContent: "space-around",
   };
 
   const textStlye = {
@@ -32,6 +33,7 @@ function StarRating({
     margin: "0",
     color: color,
     fontSize: `${size / 1.3}px`,
+    width: "20px",
   };
 
   return (
