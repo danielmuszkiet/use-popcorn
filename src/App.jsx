@@ -80,6 +80,9 @@ function App() {
     setWatched((prev) => [...prev, movie]);
   };
 
+  const handleDeleteWatched = (id) => {
+    setWatched((prev) => prev.filter((m) => m.imdbID !== id));
+  };
   return (
     <>
       <NavBar>
@@ -108,7 +111,7 @@ function App() {
           ) : (
             <>
               <WatchedSummary watched={watched} />
-              <WatchedMovieList watched={watched} />
+              <WatchedMovieList watched={watched} onDelete={handleDeleteWatched} />
             </>
           )}
         </Box>
@@ -363,17 +366,17 @@ function WatchedSummary({ watched }) {
   );
 }
 
-function WatchedMovieList({ watched }) {
+function WatchedMovieList({ watched, onDelete }) {
   return (
     <ul className="list">
       {watched.map((movie) => (
-        <WatchedMovie movie={movie} key={movie.imdbID} />
+        <WatchedMovie movie={movie} onDelete={onDelete} key={movie.imdbID} />
       ))}
     </ul>
   );
 }
 
-function WatchedMovie({ movie }) {
+function WatchedMovie({ movie, onDelete }) {
   return (
     <li>
       <img
@@ -398,6 +401,9 @@ function WatchedMovie({ movie }) {
           <span>⏳</span>
           <span>{movie.runtime} min</span>
         </p>
+        <button className="btn-delete" onClick={() => onDelete(movie.imdbID)}>
+          X
+        </button>
       </div>
     </li>
   );
