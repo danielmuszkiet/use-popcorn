@@ -102,6 +102,8 @@ function App() {
               selectedID={selectedID}
               onCloseMovie={handleCloseMovie}
               onAddWatched={handleAddWatch}
+              watched={watched}
+              key={selectedID}
             />
           ) : (
             <>
@@ -218,9 +220,17 @@ function Movie({ movie, onSelectMovie }) {
   );
 }
 
-function MovieDetails({ selectedID, onCloseMovie, onAddWatched }) {
+function MovieDetails({ selectedID, onCloseMovie, onAddWatched, watched }) {
   const [movie, setMovie] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [userRating, setUserRating] = useState("");
+
+  const isWatched = watched.reduce((acc, movie) => {
+    return acc || movie.imdbID === selectedID;
+  }, false);
+
+  const watchedUserRating = watched.find((m) => m.imdbID === selectedID)?.userRating;
+
   // Destruct and rename relevant movie details from the fetched movie object
   const {
     Title: title,
@@ -248,13 +258,16 @@ function MovieDetails({ selectedID, onCloseMovie, onAddWatched }) {
   }, [selectedID]);
 
   const handleAdd = () => {
+    const imdbRatingTemp = isNaN(Number(imdbRating)) ? 0 : Number(imdbRating);
+
     const newWatchedMovie = {
       imdbID: selectedID,
       title,
       year,
       poster,
-      imdbRating: Number(imdbRating),
+      imdbRating: imdbRatingTemp,
       runtime: Number(runtime.split(" ").at(0)),
+      userRating,
     };
 
     onAddWatched(newWatchedMovie);
@@ -292,12 +305,22 @@ function MovieDetails({ selectedID, onCloseMovie, onAddWatched }) {
           </header>
           <section>
             <div className="rating">
-              <StarRating maxRating={10} size={25} />
-
-              <button className="btn-add" onClick={handleAdd}>
-                Add to list
-              </button>
+              {!isWatched ? (
+                <>
+                  <StarRating maxRating={10} size={25} onSetRating={setUserRating} />
+                  {userRating > 0 && (
+                    <button className="btn-add" onClick={handleAdd}>
+                      Add to list
+                    </button>
+                  )}
+                </>
+              ) : (
+                <p>
+                  You already rated this movie: {watchedUserRating} <span>⭐️</span>
+                </p>
+              )}
             </div>
+
             <p>
               <em>{plot}</em>
             </p>
@@ -311,7 +334,7 @@ function MovieDetails({ selectedID, onCloseMovie, onAddWatched }) {
 }
 
 function WatchedSummary({ watched }) {
-  const avgImdbRating = average(watched.map((movie) => movie.imdbRating));
+  const avgImdbRating = average(watched.map((movie) => movie.imdbRating)).toFixed(2);
   const avgUserRating = average(watched.map((movie) => movie.userRating));
   const avgRuntime = average(watched.map((movie) => movie.runtime));
 
