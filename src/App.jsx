@@ -337,9 +337,11 @@ function MovieDetails({ selectedID, onCloseMovie, onAddWatched, watched }) {
 }
 
 function WatchedSummary({ watched }) {
-  const avgImdbRating = average(watched.map((movie) => movie.imdbRating));
+  const avgImdbRating = average(
+    watched.map((movie) => (!isNaN(movie.imdbRating) ? movie.imdbRating : 0))
+  );
   const avgUserRating = average(watched.map((movie) => movie.userRating));
-  const avgRuntime = average(watched.map((movie) => movie.runtime));
+  const avgRuntime = average(watched.map((movie) => (!isNaN(movie.runtime) ? movie.runtime : 0)));
 
   return (
     <div className="summary">
@@ -399,7 +401,7 @@ function WatchedMovie({ movie, onDelete }) {
         </p>
         <p>
           <span>⏳</span>
-          <span>{movie.runtime} min</span>
+          <span>{!isNaN(movie.runtime) ? movie.runtime + " min" : "--"}</span>
         </p>
         <button className="btn-delete" onClick={() => onDelete(movie.imdbID)}>
           X
