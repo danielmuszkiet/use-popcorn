@@ -15,13 +15,18 @@ function App() {
   const [query, setQuery] = useState("inception");
 
   useEffect(() => {
+    const controller = new AbortController();
+    const signal = controller.signal;
+
     async function fetchMovies() {
       try {
         setIsLoading(true);
         setSelectedID(null);
         setErrorMsg("");
 
-        const res = await fetch(`https://www.omdbapi.com/?apikey=${KEY}&s=${query}`);
+        const res = await fetch(`https://www.omdbapi.com/?apikey=${KEY}&s=${query}`, {
+          signal,
+        });
         if (!res.ok) throw new Error("Movie fetching went wrong");
 
         const data = await res.json();
@@ -30,7 +35,7 @@ function App() {
 
         setMovies(data.Search);
       } catch (error) {
-        setErrorMsg(error.message);
+        if (error.name !== "AbortError") setErrorMsg(error.message);
       } finally {
         setIsLoading(false);
       }
@@ -43,6 +48,10 @@ function App() {
     }
 
     fetchMovies();
+
+    return function () {
+      controller.abort();
+    };
   }, [query]);
 
   const handleSelectMovie = (id) => {
@@ -253,6 +262,15 @@ function MovieDetails({ selectedID, onCloseMovie, onAddWatched, watched }) {
     onAddWatched(newWatchedMovie);
     onCloseMovie();
   };
+
+  useEffect(() => {
+    if (!title) return;
+    document.title = `Movie | ${title}`;
+
+    return function () {
+      document.title = "Use Popcorn";
+    };
+  }, [title]);
 
   return (
     <div className="details">
