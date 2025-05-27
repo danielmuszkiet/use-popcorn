@@ -246,6 +246,20 @@ function MovieDetails({ selectedID, onCloseMovie, onAddWatched, watched }) {
     getMovieDetails();
   }, [selectedID]);
 
+  useEffect(() => {
+    function escapeReturn(e) {
+      if (e.code === "Escape") {
+        onCloseMovie();
+      }
+    }
+
+    document.addEventListener("keydown", escapeReturn);
+
+    return function () {
+      document.removeEventListener("keydown", escapeReturn);
+    };
+  }, [onCloseMovie]);
+
   const handleAdd = () => {
     const imdbRatingTemp = isNaN(Number(imdbRating)) ? 0 : Number(imdbRating);
 
