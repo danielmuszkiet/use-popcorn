@@ -7,12 +7,31 @@ const KEY = "23728de8";
 
 function App() {
   const [movies, setMovies] = useState([]);
-  const [watched, setWatched] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [selectedID, setSelectedID] = useState(null);
+  const [watched, setWatched] = useState(function () {
+    const storedData = localStorage.getItem("watched");
+    return JSON.parse(storedData);
+  });
 
   const [query, setQuery] = useState("inception");
+
+  const handleSelectMovie = (id) => {
+    setSelectedID((prev) => (prev === id ? null : id));
+  };
+
+  const handleCloseMovie = () => {
+    setSelectedID(null);
+  };
+
+  const handleAddWatch = (movie) => {
+    setWatched((prev) => [...prev, movie]);
+  };
+
+  const handleDeleteWatched = (id) => {
+    setWatched((prev) => prev.filter((m) => m.imdbID !== id));
+  };
 
   useEffect(() => {
     const controller = new AbortController();
@@ -54,21 +73,10 @@ function App() {
     };
   }, [query]);
 
-  const handleSelectMovie = (id) => {
-    setSelectedID((prev) => (prev === id ? null : id));
-  };
+  useEffect(() => {
+    localStorage.setItem("watched", JSON.stringify(watched));
+  }, [watched]);
 
-  const handleCloseMovie = () => {
-    setSelectedID(null);
-  };
-
-  const handleAddWatch = (movie) => {
-    setWatched((prev) => [...prev, movie]);
-  };
-
-  const handleDeleteWatched = (id) => {
-    setWatched((prev) => prev.filter((m) => m.imdbID !== id));
-  };
   return (
     <>
       <NavBar>
@@ -252,13 +260,21 @@ function MovieDetails({ selectedID, onCloseMovie, onAddWatched, watched }) {
         onCloseMovie();
       }
     }
-
     document.addEventListener("keydown", escapeReturn);
 
     return function () {
       document.removeEventListener("keydown", escapeReturn);
     };
   }, [onCloseMovie]);
+
+  useEffect(() => {
+    if (!title) return;
+    document.title = `Movie | ${title}`;
+
+    return function () {
+      document.title = "Use Popcorn";
+    };
+  }, [title]);
 
   const handleAdd = () => {
     const imdbRatingTemp = isNaN(Number(imdbRating)) ? 0 : Number(imdbRating);
@@ -276,15 +292,6 @@ function MovieDetails({ selectedID, onCloseMovie, onAddWatched, watched }) {
     onAddWatched(newWatchedMovie);
     onCloseMovie();
   };
-
-  useEffect(() => {
-    if (!title) return;
-    document.title = `Movie | ${title}`;
-
-    return function () {
-      document.title = "Use Popcorn";
-    };
-  }, [title]);
 
   return (
     <div className="details">
